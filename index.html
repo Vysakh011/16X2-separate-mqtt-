@@ -2,91 +2,110 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ESP32 LCD Controller</title>
+  <title>MQTT LCD Controller</title>
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
-      height: 100vh;
-      margin: 0;
+      background: #f4f7fb;
       display: flex;
       justify-content: center;
       align-items: center;
+      height: 100vh;
+      margin: 0;
     }
     .container {
-      background: white;
-      padding: 30px;
+      background: #fff;
+      padding: 25px;
       border-radius: 15px;
-      box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
-      text-align: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
       width: 350px;
     }
     h2 {
+      text-align: center;
       margin-bottom: 20px;
       color: #333;
     }
-    input[type="text"] {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
+    label {
+      font-weight: bold;
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
       border-radius: 8px;
       border: 1px solid #ccc;
-      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .btn-group {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
     }
     button {
-      padding: 10px 20px;
-      margin-top: 10px;
-      font-size: 16px;
+      flex: 1;
+      padding: 10px;
       border: none;
       border-radius: 8px;
+      margin: 0 5px;
+      font-weight: bold;
       cursor: pointer;
-      background: #4CAF50;
-      color: white;
-      transition: background 0.3s;
+      transition: 0.3s;
     }
-    button:hover {
+    .send {
+      background: #4caf50;
+      color: white;
+    }
+    .send:hover {
       background: #45a049;
     }
-    .status {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #444;
+    .clear {
+      background: #f44336;
+      color: white;
+    }
+    .clear:hover {
+      background: #e53935;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>ESP32 LCD Controller</h2>
+    <h2>LCD MQTT Controller</h2>
 
-    <input id="line1" type="text" maxlength="16" placeholder="Enter Line 1 text">
-    <button onclick="sendMessage('lcd/line1', document.getElementById('line1').value)">Send Line 1</button>
-    
-    <input id="line2" type="text" maxlength="16" placeholder="Enter Line 2 text">
-    <button onclick="sendMessage('lcd/line2', document.getElementById('line2').value)">Send Line 2</button>
+    <label for="line1">Line 1:</label>
+    <input type="text" id="line1" placeholder="Enter text for line 1">
+    <div class="btn-group">
+      <button class="send" onclick="sendMessage('lcd/line1', document.getElementById('line1').value)">Send</button>
+      <button class="clear" onclick="sendMessage('lcd/line1', '')">Clear</button>
+    </div>
 
-    <div class="status" id="status">Connecting to MQTT...</div>
+    <label for="line2">Line 2:</label>
+    <input type="text" id="line2" placeholder="Enter text for line 2">
+    <div class="btn-group">
+      <button class="send" onclick="sendMessage('lcd/line2', document.getElementById('line2').value)">Send</button>
+      <button class="clear" onclick="sendMessage('lcd/line2', '')">Clear</button>
+    </div>
   </div>
 
   <script>
-    // Connect to public MQTT broker
-    const client = mqtt.connect("wss://test.mosquitto.org:8081");
+    // Connect to public Mosquitto broker over WSS
+    const client = mqtt.connect("wss://test.mosquitto.org:8081/mqtt");
 
     client.on("connect", () => {
-      document.getElementById("status").innerText = "✅ Connected to MQTT";
+      console.log("Connected to MQTT broker");
     });
 
     client.on("error", (err) => {
-      document.getElementById("status").innerText = "❌ MQTT Error";
       console.error("Connection error: ", err);
     });
 
     function sendMessage(topic, message) {
       if (client.connected) {
         client.publish(topic, message);
-        document.getElementById("status").innerText = `📤 Sent: "${message}" to ${topic}`;
+        console.log("Published", message, "to", topic);
       } else {
-        document.getElementById("status").innerText = "⚠️ Not connected";
+        console.log("MQTT not connected");
       }
     }
   </script>
