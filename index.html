@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>16x2 LCD MQTT Controller</title>
+</head>
+<body>
+  <h2>HD44780 LCD MQTT Controller</h2>
+
+  <!-- Line 1 Controls -->
+  <label>Line 1:</label>
+  <input type="text" id="line1" placeholder="Enter message">
+  <button onclick="sendLine(1)">Send</button><br>
+  Scroll Speed 1: 
+  <input type="range" min="50" max="1000" value="300" id="speed1" oninput="updateSpeed(1,this.value)">
+  <span id="speedVal1">300</span> ms<br><br>
+
+  <!-- Line 2 Controls -->
+  <label>Line 2:</label>
+  <input type="text" id="line2" placeholder="Enter message">
+  <button onclick="sendLine(2)">Send</button><br>
+  Scroll Speed 2: 
+  <input type="range" min="50" max="1000" value="300" id="speed2" oninput="updateSpeed(2,this.value)">
+  <span id="speedVal2">300</span> ms<br>
+
+  <!-- MQTT Library -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script>
+    // Connect to MQTT broker (WSS)
+    const client = mqtt.connect('wss://test.mosquitto.org:8081/mqtt');
+
+    client.on('connect', function() {
+      console.log('Connected to MQTT broker!');
+    });
+
+    client.on('error', function(err){
+      console.error('MQTT connection error: ', err);
+    });
+
+    // Send line text
+    function sendLine(lineNum){
+      const msg = document.getElementById('line'+lineNum).value;
+      client.publish('lcd/line'+lineNum, msg);
+    }
+
+    // Send scroll speed
+    function updateSpeed(lineNum, val){
+      document.getElementById('speedVal'+lineNum).innerText = val;
+      client.publish('lcd/speed'+lineNum, val);
+    }
+  </script>
+</body>
+</html>
