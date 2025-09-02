@@ -2,30 +2,40 @@
 <html>
 <head>
   <title>16x2 LCD MQTT Controller</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label { font-weight: bold; }
+    input[type=text] { width: 300px; margin-bottom: 5px; }
+    .slider-container { margin-bottom: 20px; }
+  </style>
 </head>
 <body>
-  <h2>HD44780 LCD MQTT Controller</h2>
+  <h2>16x2 LCD MQTT Controller</h2>
 
   <!-- Line 1 Controls -->
-  <label>Line 1:</label>
-  <input type="text" id="line1" placeholder="Enter message">
-  <button onclick="sendLine(1)">Send</button><br>
-  Scroll Speed 1: 
-  <input type="range" min="50" max="1000" value="300" id="speed1" oninput="updateSpeed(1,this.value)">
-  <span id="speedVal1">300</span> ms<br><br>
+  <div class="slider-container">
+    <label>Line 1:</label><br>
+    <input type="text" id="line1" placeholder="Enter message for line 1">
+    <button onclick="sendLine(1)">Send</button><br>
+    Scroll Speed 1: 
+    <input type="range" min="50" max="1000" value="300" id="speed1" oninput="updateSpeed(1,this.value)">
+    <span id="speedVal1">300</span> ms
+  </div>
 
   <!-- Line 2 Controls -->
-  <label>Line 2:</label>
-  <input type="text" id="line2" placeholder="Enter message">
-  <button onclick="sendLine(2)">Send</button><br>
-  Scroll Speed 2: 
-  <input type="range" min="50" max="1000" value="300" id="speed2" oninput="updateSpeed(2,this.value)">
-  <span id="speedVal2">300</span> ms<br>
+  <div class="slider-container">
+    <label>Line 2:</label><br>
+    <input type="text" id="line2" placeholder="Enter message for line 2">
+    <button onclick="sendLine(2)">Send</button><br>
+    Scroll Speed 2: 
+    <input type="range" min="50" max="1000" value="300" id="speed2" oninput="updateSpeed(2,this.value)">
+    <span id="speedVal2">300</span> ms
+  </div>
 
   <!-- MQTT Library -->
   <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script>
-    // Connect to MQTT broker (WSS)
+    // Connect to MQTT broker (WebSockets)
     const client = mqtt.connect('wss://test.mosquitto.org:8081/mqtt');
 
     client.on('connect', function() {
@@ -33,19 +43,21 @@
     });
 
     client.on('error', function(err){
-      console.error('MQTT connection error: ', err);
+      console.error('MQTT connection error:', err);
     });
 
     // Send line text
-    function sendLine(lineNum){
-      const msg = document.getElementById('line'+lineNum).value;
-      client.publish('lcd/line'+lineNum, msg);
+    function sendLine(lineNum) {
+      const msg = document.getElementById('line' + lineNum).value;
+      client.publish('lcd/line' + lineNum, msg);
+      console.log('Sent to line' + lineNum + ': ' + msg);
     }
 
     // Send scroll speed
-    function updateSpeed(lineNum, val){
-      document.getElementById('speedVal'+lineNum).innerText = val;
-      client.publish('lcd/speed'+lineNum, val);
+    function updateSpeed(lineNum, val) {
+      document.getElementById('speedVal' + lineNum).innerText = val;
+      client.publish('lcd/speed' + lineNum, val);
+      console.log('Speed for line' + lineNum + ': ' + val + 'ms');
     }
   </script>
 </body>
