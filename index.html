@@ -1,63 +1,93 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>16x2 LCD MQTT Controller</title>
+  <meta charset="UTF-8">
+  <title>ESP32 LCD Controller</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    label { font-weight: bold; }
-    input[type=text] { width: 300px; margin-bottom: 5px; }
-    .slider-container { margin-bottom: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 8px 20px rgba(0,0,0,0.15);
+      text-align: center;
+      width: 350px;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input[type="text"] {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .status {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #444;
+    }
   </style>
 </head>
 <body>
-  <h2>16x2 LCD MQTT Controller</h2>
+  <div class="container">
+    <h2>ESP32 LCD Controller</h2>
 
-  <!-- Line 1 Controls -->
-  <div class="slider-container">
-    <label>Line 1:</label><br>
-    <input type="text" id="line1" placeholder="Enter message for line 1">
-    <button onclick="sendLine(1)">Send</button><br>
-    Scroll Speed 1: 
-    <input type="range" min="50" max="1000" value="300" id="speed1" oninput="updateSpeed(1,this.value)">
-    <span id="speedVal1">300</span> ms
+    <input id="line1" type="text" maxlength="16" placeholder="Enter Line 1 text">
+    <button onclick="sendMessage('lcd/line1', document.getElementById('line1').value)">Send Line 1</button>
+    
+    <input id="line2" type="text" maxlength="16" placeholder="Enter Line 2 text">
+    <button onclick="sendMessage('lcd/line2', document.getElementById('line2').value)">Send Line 2</button>
+
+    <div class="status" id="status">Connecting to MQTT...</div>
   </div>
 
-  <!-- Line 2 Controls -->
-  <div class="slider-container">
-    <label>Line 2:</label><br>
-    <input type="text" id="line2" placeholder="Enter message for line 2">
-    <button onclick="sendLine(2)">Send</button><br>
-    Scroll Speed 2: 
-    <input type="range" min="50" max="1000" value="300" id="speed2" oninput="updateSpeed(2,this.value)">
-    <span id="speedVal2">300</span> ms
-  </div>
-
-  <!-- MQTT Library -->
-  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <script>
-    // Connect to MQTT broker (WebSockets)
-    const client = mqtt.connect('wss://test.mosquitto.org:8081/mqtt');
+    // Connect to public MQTT broker
+    const client = mqtt.connect("wss://test.mosquitto.org:8081");
 
-    client.on('connect', function() {
-      console.log('Connected to MQTT broker!');
+    client.on("connect", () => {
+      document.getElementById("status").innerText = "✅ Connected to MQTT";
     });
 
-    client.on('error', function(err){
-      console.error('MQTT connection error:', err);
+    client.on("error", (err) => {
+      document.getElementById("status").innerText = "❌ MQTT Error";
+      console.error("Connection error: ", err);
     });
 
-    // Send line text
-    function sendLine(lineNum) {
-      const msg = document.getElementById('line' + lineNum).value;
-      client.publish('lcd/line' + lineNum, msg);
-      console.log('Sent to line' + lineNum + ': ' + msg);
-    }
-
-    // Send scroll speed
-    function updateSpeed(lineNum, val) {
-      document.getElementById('speedVal' + lineNum).innerText = val;
-      client.publish('lcd/speed' + lineNum, val);
-      console.log('Speed for line' + lineNum + ': ' + val + 'ms');
+    function sendMessage(topic, message) {
+      if (client.connected) {
+        client.publish(topic, message);
+        document.getElementById("status").innerText = `📤 Sent: "${message}" to ${topic}`;
+      } else {
+        document.getElementById("status").innerText = "⚠️ Not connected";
+      }
     }
   </script>
 </body>
